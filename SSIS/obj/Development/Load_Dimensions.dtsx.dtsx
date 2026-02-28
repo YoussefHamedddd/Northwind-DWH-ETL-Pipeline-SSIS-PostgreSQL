@@ -1,0 +1,592 @@
+<?xml version="1.0"?>
+<DTS:Executable xmlns:DTS="www.microsoft.com/SqlServer/Dts"
+  DTS:refId="Package"
+  DTS:CreationDate="2/28/2026 12:16:22 AM"
+  DTS:CreationName="Microsoft.Package"
+  DTS:CreatorComputerName="DESKTOP-PF8IDRB"
+  DTS:CreatorName="DESKTOP-PF8IDRB\MiDooooo"
+  DTS:DTSID="{7F7E4C08-F5D0-4C90-B048-3934FF7CC93A}"
+  DTS:ExecutableType="Microsoft.Package"
+  DTS:LastModifiedProductVersion="17.0.1010.2"
+  DTS:LocaleID="1033"
+  DTS:ObjectName="Load_Dimensions dtsx"
+  DTS:PackageType="5"
+  DTS:VersionBuild="15"
+  DTS:VersionGUID="{4631659B-244E-47C6-8A0E-3F0DC743BA7D}">
+  <DTS:Property
+    DTS:Name="PackageFormatVersion">8</DTS:Property>
+  <DTS:ConnectionManagers>
+    <DTS:ConnectionManager
+      DTS:refId="Package.ConnectionManagers[localhost.postgres]"
+      DTS:CreationName="OLEDB"
+      DTS:DTSID="{A4786D6B-BFC9-4731-8D3C-A8FF09E1324A}"
+      DTS:ObjectName="localhost.postgres">
+      <DTS:ObjectData>
+        <DTS:ConnectionManager
+          DTS:ConnectRetryCount="1"
+          DTS:ConnectRetryInterval="5"
+          DTS:ConnectionString="Data Source=localhost;User ID=postgres;Initial Catalog=northwind_dwh;Provider=PGNP.1;">
+          <DTS:Password
+            DTS:Name="Password"
+            Sensitive="1"
+            Encrypted="1">AQAAANCMnd8BFdERjHoAwE/Cl+sBAAAACcRcLWHH+EuSD/NYONZBJgAAAAAIAAAARABUAFMAAAAQZgAAAAEAACAAAACUEgu4LkIHxUKZT6ov4dLbuJ36T2EATq8psc6lpfV5lQAAAAAOgAAAAAIAACAAAAC+UFsmTNbbfjtylRhkTm6Q0xH8xW5nrOcw3+yu9+LyTxAAAACXGuhZr+WEGTY7ZMB+odu2QAAAAOg51T9FnTLUB0tSJXgPJ1KtUvmtSHXUodxO+cwpqGvRG2eiknOK7bGaM5/EoEF9ln1Il11GSE7zJh/R9eWQk9s</DTS:Password>
+        </DTS:ConnectionManager>
+      </DTS:ObjectData>
+    </DTS:ConnectionManager>
+  </DTS:ConnectionManagers>
+  <DTS:Variables />
+  <DTS:Executables>
+    <DTS:Executable
+      DTS:refId="Package\Create DDL For northwind_dwh"
+      DTS:CreationName="Microsoft.ExecuteSQLTask"
+      DTS:Description="Execute SQL Task"
+      DTS:DTSID="{39215ec6-40fa-4638-9646-64c4153dd6a4}"
+      DTS:ExecutableType="Microsoft.ExecuteSQLTask"
+      DTS:LocaleID="-1"
+      DTS:ObjectName="Create DDL For northwind_dwh"
+      DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
+      DTS:ThreadHint="0">
+      <DTS:Variables />
+      <DTS:ObjectData>
+        <SQLTask:SqlTaskData
+          SQLTask:Connection="{A4786D6B-BFC9-4731-8D3C-A8FF09E1324A}"
+          SQLTask:SqlStatementSource="-- ============================================================&#xA;-- Data Warehouse DDL - Northwind Star Schema (SCD Type 2)&#xA;-- ============================================================&#xA;&#xA;-- 1. Create Schemas with correct syntax&#xA;CREATE SCHEMA IF NOT EXISTS Fact;&#xA;CREATE SCHEMA IF NOT EXISTS Dim;&#xA;CREATE SCHEMA IF NOT EXISTS Stg;&#xA;CREATE SCHEMA IF NOT EXISTS Bridge;&#xA;&#xA;-- 2. Drop tables with semicolons&#xA;DROP TABLE IF EXISTS Fact.Fact_sales;&#xA;DROP TABLE IF EXISTS Bridge.Employee_Territory;&#xA;DROP TABLE IF EXISTS Dim.dim_employee CASCADE;&#xA;DROP TABLE IF EXISTS Dim.Dim_category CASCADE;&#xA;DROP TABLE IF EXISTS Dim.Dim_Shipper CASCADE;&#xA;DROP TABLE IF EXISTS Dim.Dim_customer CASCADE;&#xA;DROP TABLE IF EXISTS Dim.Dim_Territory CASCADE;&#xA;DROP TABLE IF EXISTS Dim.Dim_Date CASCADE;&#xA;DROP TABLE IF EXISTS Dim.Dim_Product CASCADE;&#xA;&#xA;-- 3. Create Tables&#xA;CREATE TABLE Dim.Dim_Date (&#xA;    date_key INT PRIMARY KEY,&#xA;    full_date DATE NOT NULL,&#xA;    day_name VARCHAR(15),&#xA;    month_name VARCHAR(15),&#xA;    quarter INT,&#xA;    year INT,&#xA;    is_weekend BOOLEAN,&#xA;    CONSTRAINT uk_full_date UNIQUE (full_date)&#xA;);&#xA;&#xA;CREATE TABLE Dim.Dim_Product (&#xA;    product_key BIGSERIAL PRIMARY KEY,&#xA;    product_id INT NOT NULL,&#xA;    product_name VARCHAR(100) NOT NULL,&#xA;    unit_price DECIMAL(10,2),&#xA;    reorder_level INT,&#xA;    discontinued BOOLEAN,&#xA;    units_in_stock INT,    &#xA;    units_on_order INT,&#xA;    category_name VARCHAR(50),&#xA;    category_description TEXT,&#xA;    supplier_name VARCHAR(100),&#xA;    supplier_phone VARCHAR(50),&#xA;    supplier_state_name VARCHAR(100), &#xA;    start_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,&#xA;    end_date TIMESTAMP,&#xA;    is_current BOOLEAN DEFAULT TRUE&#xA;);&#xA;&#xA;CREATE TABLE Dim.Dim_Customer (&#xA;    customer_key BIGSERIAL PRIMARY KEY,&#xA;    customer_id CHAR(5) NOT NULL,&#xA;    company_name VARCHAR(100),&#xA;    contact_name VARCHAR(100),&#xA;    city VARCHAR(50),&#xA;    postal_code VARCHAR(50),&#xA;    country VARCHAR(50),&#xA;    region  VARCHAR(50),&#xA;    phone   VARCHAR(50),&#xA;    state_name VARCHAR(100), &#xA;    state_abbr CHAR(50),     &#xA;    customer_type VARCHAR(50),&#xA;    customer_desc TEXT,&#xA;    is_current BOOLEAN DEFAULT TRUE&#xA;);&#xA;&#xA;CREATE TABLE Dim.Dim_Employee (&#xA;    employee_key SERIAL PRIMARY KEY,&#xA;    employee_id INT NOT NULL UNIQUE,&#xA;    full_name VARCHAR(100),&#xA;    title VARCHAR(50),&#xA;    hire_date DATE,&#xA;    city VARCHAR(50),&#xA;    home_phone VARCHAR(25),&#xA;    reports_to INT,&#xA;    is_current BOOLEAN DEFAULT TRUE&#xA;);&#xA;&#xA;CREATE TABLE Dim.Dim_Territory (&#xA;    territory_key SERIAL PRIMARY KEY,&#xA;    territory_id VARCHAR(20) NOT NULL UNIQUE,&#xA;    territory_description VARCHAR(100),&#xA;    region_description VARCHAR(100)&#xA;);&#xA;&#xA;CREATE TABLE Dim.Dim_Shipper (&#xA;    shipper_key BIGSERIAL PRIMARY KEY,&#xA;    shipper_id INT NOT NULL,&#xA;    company_name VARCHAR(100),&#xA;    phone VARCHAR(50)&#xA;);&#xA;&#xA;CREATE TABLE Fact.Fact_Sales (&#xA;    sales_key BIGSERIAL PRIMARY KEY,&#xA;    product_key BIGINT REFERENCES Dim.Dim_Product(product_key),&#xA;    customer_key BIGINT REFERENCES Dim.Dim_Customer(customer_key),&#xA;    employee_key INT REFERENCES Dim.Dim_Employee(employee_key),&#xA;    shipper_key BIGINT REFERENCES Dim.Dim_Shipper(shipper_key),&#xA;    date_key INT REFERENCES Dim.Dim_Date(date_key),&#xA;    &#xA;    order_id INT NOT NULL,&#xA;    quantity INT NOT NULL,&#xA;    unit_price_sold DECIMAL(10,2) NOT NULL, &#xA;    discount DECIMAL(10,2) DEFAULT 0,&#xA;    freight DECIMAL(10,2),&#xA;    total_amount DECIMAL(10,2) GENERATED ALWAYS AS (quantity * unit_price_sold * (1 - discount)) STORED&#xA;);&#xA;&#xA;CREATE TABLE Bridge.Employee_Territory(&#xA;    employee_key INT REFERENCES Dim.Dim_Employee(employee_key),&#xA;    territory_key INT REFERENCES Dim.Dim_Territory(territory_key),&#xA;    PRIMARY KEY (employee_key, territory_key)&#xA;);" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
+      </DTS:ObjectData>
+    </DTS:Executable>
+    <DTS:Executable
+      DTS:refId="Package\Load From Staging Tables Into Northwind_DWH"
+      DTS:CreationName="STOCK:SEQUENCE"
+      DTS:Description="Sequence Container"
+      DTS:DTSID="{7a851ee9-3bc2-4e5e-93ae-2a97db330620}"
+      DTS:ExecutableType="STOCK:SEQUENCE"
+      DTS:LocaleID="-1"
+      DTS:ObjectName="Load From Staging Tables Into Northwind_DWH">
+      <DTS:Variables />
+      <DTS:Executables>
+        <DTS:Executable
+          DTS:refId="Package\Load From Staging Tables Into Northwind_DWH\Load Bridge_Employee_Territory"
+          DTS:CreationName="Microsoft.ExecuteSQLTask"
+          DTS:Description="Execute SQL Task"
+          DTS:DTSID="{b45dcb8e-8359-4a87-b11a-b49b6c896b42}"
+          DTS:ExecutableType="Microsoft.ExecuteSQLTask"
+          DTS:LocaleID="-1"
+          DTS:ObjectName="Load Bridge_Employee_Territory"
+          DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
+          DTS:ThreadHint="1">
+          <DTS:Variables />
+          <DTS:ObjectData>
+            <SQLTask:SqlTaskData
+              SQLTask:Connection="{A4786D6B-BFC9-4731-8D3C-A8FF09E1324A}"
+              SQLTask:SqlStatementSource="call Bridge.Load_Employee_Territory()" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
+          </DTS:ObjectData>
+        </DTS:Executable>
+        <DTS:Executable
+          DTS:refId="Package\Load From Staging Tables Into Northwind_DWH\Load Dim_Customer"
+          DTS:CreationName="Microsoft.ExecuteSQLTask"
+          DTS:Description="Execute SQL Task"
+          DTS:DTSID="{5c1a68f0-3136-4797-b29a-7e2814affc09}"
+          DTS:ExecutableType="Microsoft.ExecuteSQLTask"
+          DTS:LocaleID="-1"
+          DTS:ObjectName="Load Dim_Customer"
+          DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
+          DTS:ThreadHint="2">
+          <DTS:Variables />
+          <DTS:ObjectData>
+            <SQLTask:SqlTaskData
+              SQLTask:Connection="{A4786D6B-BFC9-4731-8D3C-A8FF09E1324A}"
+              SQLTask:SqlStatementSource="&#xA;call Dim.Load_Dim_Customer()&#xA;" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
+          </DTS:ObjectData>
+        </DTS:Executable>
+        <DTS:Executable
+          DTS:refId="Package\Load From Staging Tables Into Northwind_DWH\Load Dim_Employees"
+          DTS:CreationName="Microsoft.ExecuteSQLTask"
+          DTS:Description="Execute SQL Task"
+          DTS:DTSID="{b2fb5061-e180-4858-a597-a0ee278f1fa6}"
+          DTS:ExecutableType="Microsoft.ExecuteSQLTask"
+          DTS:LocaleID="-1"
+          DTS:ObjectName="Load Dim_Employees"
+          DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
+          DTS:ThreadHint="5">
+          <DTS:Variables />
+          <DTS:ObjectData>
+            <SQLTask:SqlTaskData
+              SQLTask:Connection="{A4786D6B-BFC9-4731-8D3C-A8FF09E1324A}"
+              SQLTask:SqlStatementSource="call Dim.Load_Dim_Employee()" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
+          </DTS:ObjectData>
+        </DTS:Executable>
+        <DTS:Executable
+          DTS:refId="Package\Load From Staging Tables Into Northwind_DWH\Load Dim_Product"
+          DTS:CreationName="Microsoft.ExecuteSQLTask"
+          DTS:Description="Execute SQL Task"
+          DTS:DTSID="{a394feb7-4dcc-470b-9f55-5026df574bc1}"
+          DTS:ExecutableType="Microsoft.ExecuteSQLTask"
+          DTS:LocaleID="-1"
+          DTS:ObjectName="Load Dim_Product"
+          DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
+          DTS:ThreadHint="4">
+          <DTS:Variables />
+          <DTS:ObjectData>
+            <SQLTask:SqlTaskData
+              SQLTask:Connection="{A4786D6B-BFC9-4731-8D3C-A8FF09E1324A}"
+              SQLTask:SqlStatementSource="CALL Dim.Load_Dim_Product()" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
+          </DTS:ObjectData>
+        </DTS:Executable>
+        <DTS:Executable
+          DTS:refId="Package\Load From Staging Tables Into Northwind_DWH\Load Dim_Shipper"
+          DTS:CreationName="Microsoft.ExecuteSQLTask"
+          DTS:Description="Execute SQL Task"
+          DTS:DTSID="{53742312-b8b2-4dd0-96da-b38b5f13f33b}"
+          DTS:ExecutableType="Microsoft.ExecuteSQLTask"
+          DTS:LocaleID="-1"
+          DTS:ObjectName="Load Dim_Shipper"
+          DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
+          DTS:ThreadHint="0">
+          <DTS:Variables />
+          <DTS:ObjectData>
+            <SQLTask:SqlTaskData
+              SQLTask:Connection="{A4786D6B-BFC9-4731-8D3C-A8FF09E1324A}"
+              SQLTask:SqlStatementSource="call Dim.Load_Dim_Shipper()" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
+          </DTS:ObjectData>
+        </DTS:Executable>
+        <DTS:Executable
+          DTS:refId="Package\Load From Staging Tables Into Northwind_DWH\Load Dim_Territory"
+          DTS:CreationName="Microsoft.ExecuteSQLTask"
+          DTS:Description="Execute SQL Task"
+          DTS:DTSID="{aa54d600-43db-4fdf-8196-ac146a752001}"
+          DTS:ExecutableType="Microsoft.ExecuteSQLTask"
+          DTS:LocaleID="-1"
+          DTS:ObjectName="Load Dim_Territory"
+          DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
+          DTS:ThreadHint="1">
+          <DTS:Variables />
+          <DTS:ObjectData>
+            <SQLTask:SqlTaskData
+              SQLTask:Connection="{A4786D6B-BFC9-4731-8D3C-A8FF09E1324A}"
+              SQLTask:SqlStatementSource="call Dim.Load_Dim_Territory()" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
+          </DTS:ObjectData>
+        </DTS:Executable>
+        <DTS:Executable
+          DTS:refId="Package\Load From Staging Tables Into Northwind_DWH\Load Fact_Sales"
+          DTS:CreationName="Microsoft.ExecuteSQLTask"
+          DTS:Description="Execute SQL Task"
+          DTS:DTSID="{dc6706a3-a74e-4936-b07c-fcac9c576ea9}"
+          DTS:ExecutableType="Microsoft.ExecuteSQLTask"
+          DTS:LocaleID="-1"
+          DTS:ObjectName="Load Fact_Sales"
+          DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
+          DTS:ThreadHint="0">
+          <DTS:Variables />
+          <DTS:ObjectData>
+            <SQLTask:SqlTaskData
+              SQLTask:Connection="{A4786D6B-BFC9-4731-8D3C-A8FF09E1324A}"
+              SQLTask:SqlStatementSource="call Fact.Load_Fact_Sales()" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
+          </DTS:ObjectData>
+        </DTS:Executable>
+        <DTS:Executable
+          DTS:refId="Package\Load From Staging Tables Into Northwind_DWH\Load_Dim_Date"
+          DTS:CreationName="Microsoft.ExecuteSQLTask"
+          DTS:Description="Execute SQL Task"
+          DTS:DTSID="{c6232983-ac58-4527-9a50-b37a7e259e14}"
+          DTS:ExecutableType="Microsoft.ExecuteSQLTask"
+          DTS:LocaleID="-1"
+          DTS:ObjectName="Load_Dim_Date"
+          DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
+          DTS:ThreadHint="3">
+          <DTS:Variables />
+          <DTS:ObjectData>
+            <SQLTask:SqlTaskData
+              SQLTask:Connection="{A4786D6B-BFC9-4731-8D3C-A8FF09E1324A}"
+              SQLTask:SqlStatementSource="call Dim.Load_Dim_Date()" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
+          </DTS:ObjectData>
+        </DTS:Executable>
+      </DTS:Executables>
+      <DTS:PrecedenceConstraints>
+        <DTS:PrecedenceConstraint
+          DTS:refId="Package\Load From Staging Tables Into Northwind_DWH.PrecedenceConstraints[Constraint]"
+          DTS:CreationName=""
+          DTS:DTSID="{F8E8ADF9-AC99-4F93-A806-1782DC0BBD1F}"
+          DTS:From="Package\Load From Staging Tables Into Northwind_DWH\Load Dim_Territory"
+          DTS:LogicalAnd="True"
+          DTS:ObjectName="Constraint"
+          DTS:To="Package\Load From Staging Tables Into Northwind_DWH\Load Bridge_Employee_Territory" />
+        <DTS:PrecedenceConstraint
+          DTS:refId="Package\Load From Staging Tables Into Northwind_DWH.PrecedenceConstraints[Constraint 1]"
+          DTS:CreationName=""
+          DTS:DTSID="{BF26A3C1-749D-41D0-8EDE-3EECCDC71A0F}"
+          DTS:From="Package\Load From Staging Tables Into Northwind_DWH\Load Dim_Employees"
+          DTS:LogicalAnd="True"
+          DTS:ObjectName="Constraint 1"
+          DTS:To="Package\Load From Staging Tables Into Northwind_DWH\Load Bridge_Employee_Territory" />
+        <DTS:PrecedenceConstraint
+          DTS:refId="Package\Load From Staging Tables Into Northwind_DWH.PrecedenceConstraints[Constraint 2]"
+          DTS:CreationName=""
+          DTS:DTSID="{DD3CBC34-85D2-40DE-A2F6-0D22CD970DCE}"
+          DTS:From="Package\Load From Staging Tables Into Northwind_DWH\Load Dim_Employees"
+          DTS:LogicalAnd="True"
+          DTS:ObjectName="Constraint 2"
+          DTS:To="Package\Load From Staging Tables Into Northwind_DWH\Load Fact_Sales" />
+        <DTS:PrecedenceConstraint
+          DTS:refId="Package\Load From Staging Tables Into Northwind_DWH.PrecedenceConstraints[Constraint 3]"
+          DTS:CreationName=""
+          DTS:DTSID="{2E17121D-BE9D-4D63-96D6-D96550D7DBC8}"
+          DTS:From="Package\Load From Staging Tables Into Northwind_DWH\Load Dim_Customer"
+          DTS:LogicalAnd="True"
+          DTS:ObjectName="Constraint 3"
+          DTS:To="Package\Load From Staging Tables Into Northwind_DWH\Load Fact_Sales" />
+        <DTS:PrecedenceConstraint
+          DTS:refId="Package\Load From Staging Tables Into Northwind_DWH.PrecedenceConstraints[Constraint 4]"
+          DTS:CreationName=""
+          DTS:DTSID="{9E9068DE-8056-458A-84BE-3883482CA3CE}"
+          DTS:From="Package\Load From Staging Tables Into Northwind_DWH\Load Dim_Shipper"
+          DTS:LogicalAnd="True"
+          DTS:ObjectName="Constraint 4"
+          DTS:To="Package\Load From Staging Tables Into Northwind_DWH\Load Fact_Sales" />
+        <DTS:PrecedenceConstraint
+          DTS:refId="Package\Load From Staging Tables Into Northwind_DWH.PrecedenceConstraints[Constraint 5]"
+          DTS:CreationName=""
+          DTS:DTSID="{3E7BA106-FECD-4D92-B541-E54C2E22EBC4}"
+          DTS:From="Package\Load From Staging Tables Into Northwind_DWH\Load_Dim_Date"
+          DTS:LogicalAnd="True"
+          DTS:ObjectName="Constraint 5"
+          DTS:To="Package\Load From Staging Tables Into Northwind_DWH\Load Fact_Sales" />
+        <DTS:PrecedenceConstraint
+          DTS:refId="Package\Load From Staging Tables Into Northwind_DWH.PrecedenceConstraints[Constraint 6]"
+          DTS:CreationName=""
+          DTS:DTSID="{0BEF6B24-20B1-434B-9975-273622630C77}"
+          DTS:From="Package\Load From Staging Tables Into Northwind_DWH\Load Dim_Product"
+          DTS:LogicalAnd="True"
+          DTS:ObjectName="Constraint 6"
+          DTS:To="Package\Load From Staging Tables Into Northwind_DWH\Load Fact_Sales" />
+      </DTS:PrecedenceConstraints>
+    </DTS:Executable>
+  </DTS:Executables>
+  <DTS:PrecedenceConstraints>
+    <DTS:PrecedenceConstraint
+      DTS:refId="Package.PrecedenceConstraints[Constraint 1]"
+      DTS:CreationName=""
+      DTS:DTSID="{28d150e9-d5b0-4b78-9c3f-ac6c38384f95}"
+      DTS:From="Package\Create DDL For northwind_dwh"
+      DTS:LogicalAnd="True"
+      DTS:ObjectName="Constraint 1"
+      DTS:To="Package\Load From Staging Tables Into Northwind_DWH" />
+  </DTS:PrecedenceConstraints>
+  <DTS:DesignTimeProperties><![CDATA[<?xml version="1.0"?>
+<!--This CDATA section contains the layout information of the package. The section includes information such as (x,y) coordinates, width, and height.-->
+<!--If you manually edit this section and make a mistake, you can delete it. -->
+<!--The package will still be able to load normally but the previous layout information will be lost and the designer will automatically re-arrange the elements on the design surface.-->
+<Objects
+  Version="8">
+  <!--Each node below will contain properties that do not affect runtime behavior.-->
+  <Package
+    design-time-name="Package">
+    <LayoutInfo>
+      <GraphLayout
+        Capacity="32" xmlns="clr-namespace:Microsoft.SqlServer.IntegrationServices.Designer.Model.Serialization;assembly=Microsoft.SqlServer.IntegrationServices.Graph" xmlns:mssgle="clr-namespace:Microsoft.SqlServer.Graph.LayoutEngine;assembly=Microsoft.SqlServer.Graph" xmlns:assembly="http://schemas.microsoft.com/winfx/2006/xaml">
+        <NodeLayout
+          Size="227,42"
+          Id="Package\Create DDL For northwind_dwh"
+          TopLeft="529,22" />
+        <NodeLayout
+          Size="180,42"
+          Id="Package\Load From Staging Tables Into Northwind_DWH\Load Dim_Employees"
+          TopLeft="202,51" />
+        <NodeLayout
+          Size="170,42"
+          Id="Package\Load From Staging Tables Into Northwind_DWH\Load Dim_Territory"
+          TopLeft="16.5,53" />
+        <NodeLayout
+          Size="233,42"
+          Id="Package\Load From Staging Tables Into Northwind_DWH\Load Bridge_Employee_Territory"
+          TopLeft="71,155" />
+        <EdgeLayout
+          Id="Package\Load From Staging Tables Into Northwind_DWH.PrecedenceConstraints[Constraint]"
+          TopLeft="101.5,95">
+          <EdgeLayout.Curve>
+            <mssgle:Curve
+              StartConnector="{assembly:Null}"
+              EndConnector="48.5,60"
+              Start="0,0"
+              End="48.5,52.5">
+              <mssgle:Curve.Segments>
+                <mssgle:SegmentCollection
+                  Capacity="5">
+                  <mssgle:LineSegment
+                    End="0,31.7544757033248" />
+                  <mssgle:CubicBezierSegment
+                    Point1="0,31.7544757033248"
+                    Point2="0,35.7544757033248"
+                    Point3="4,35.7544757033248" />
+                  <mssgle:LineSegment
+                    End="44.5,35.7544757033248" />
+                  <mssgle:CubicBezierSegment
+                    Point1="44.5,35.7544757033248"
+                    Point2="48.5,35.7544757033248"
+                    Point3="48.5,39.7544757033248" />
+                  <mssgle:LineSegment
+                    End="48.5,52.5" />
+                </mssgle:SegmentCollection>
+              </mssgle:Curve.Segments>
+            </mssgle:Curve>
+          </EdgeLayout.Curve>
+          <EdgeLayout.Labels>
+            <EdgeLabelCollection />
+          </EdgeLayout.Labels>
+        </EdgeLayout>
+        <EdgeLayout
+          Id="Package\Load From Staging Tables Into Northwind_DWH.PrecedenceConstraints[Constraint 1]"
+          TopLeft="292,93">
+          <EdgeLayout.Curve>
+            <mssgle:Curve
+              StartConnector="{assembly:Null}"
+              EndConnector="-67,62"
+              Start="0,0"
+              End="-67,54.5">
+              <mssgle:Curve.Segments>
+                <mssgle:SegmentCollection
+                  Capacity="5">
+                  <mssgle:LineSegment
+                    End="0,32.9462915601023" />
+                  <mssgle:CubicBezierSegment
+                    Point1="0,32.9462915601023"
+                    Point2="0,36.9462915601023"
+                    Point3="-4,36.9462915601023" />
+                  <mssgle:LineSegment
+                    End="-63,36.9462915601023" />
+                  <mssgle:CubicBezierSegment
+                    Point1="-63,36.9462915601023"
+                    Point2="-67,36.9462915601023"
+                    Point3="-67,40.9462915601023" />
+                  <mssgle:LineSegment
+                    End="-67,54.5" />
+                </mssgle:SegmentCollection>
+              </mssgle:Curve.Segments>
+            </mssgle:Curve>
+          </EdgeLayout.Curve>
+          <EdgeLayout.Labels>
+            <EdgeLabelCollection />
+          </EdgeLayout.Labels>
+        </EdgeLayout>
+        <NodeLayout
+          Size="155,42"
+          Id="Package\Load From Staging Tables Into Northwind_DWH\Load Fact_Sales"
+          TopLeft="521,226" />
+        <NodeLayout
+          Size="174,42"
+          Id="Package\Load From Staging Tables Into Northwind_DWH\Load Dim_Customer"
+          TopLeft="430,52" />
+        <NodeLayout
+          Size="165,42"
+          Id="Package\Load From Staging Tables Into Northwind_DWH\Load Dim_Shipper"
+          TopLeft="627,50" />
+        <NodeLayout
+          Size="154,42"
+          Id="Package\Load From Staging Tables Into Northwind_DWH\Load_Dim_Date"
+          TopLeft="815,51" />
+        <NodeLayout
+          Size="165,48"
+          Id="Package\Load From Staging Tables Into Northwind_DWH\Load Dim_Product"
+          TopLeft="988,53" />
+        <EdgeLayout
+          Id="Package\Load From Staging Tables Into Northwind_DWH.PrecedenceConstraints[Constraint 3]"
+          TopLeft="517,94">
+          <EdgeLayout.Curve>
+            <mssgle:Curve
+              StartConnector="{assembly:Null}"
+              EndConnector="57,132"
+              Start="0,0"
+              End="57,124.5">
+              <mssgle:Curve.Segments>
+                <mssgle:SegmentCollection
+                  Capacity="5">
+                  <mssgle:LineSegment
+                    End="0,74.3908045977011" />
+                  <mssgle:CubicBezierSegment
+                    Point1="0,74.3908045977011"
+                    Point2="0,78.3908045977011"
+                    Point3="4,78.3908045977011" />
+                  <mssgle:LineSegment
+                    End="53,78.3908045977011" />
+                  <mssgle:CubicBezierSegment
+                    Point1="53,78.3908045977011"
+                    Point2="57,78.3908045977011"
+                    Point3="57,82.3908045977011" />
+                  <mssgle:LineSegment
+                    End="57,124.5" />
+                </mssgle:SegmentCollection>
+              </mssgle:Curve.Segments>
+            </mssgle:Curve>
+          </EdgeLayout.Curve>
+          <EdgeLayout.Labels>
+            <EdgeLabelCollection />
+          </EdgeLayout.Labels>
+        </EdgeLayout>
+        <EdgeLayout
+          Id="Package\Load From Staging Tables Into Northwind_DWH.PrecedenceConstraints[Constraint 2]"
+          TopLeft="320.666666666667,93">
+          <EdgeLayout.Curve>
+            <mssgle:Curve
+              StartConnector="{assembly:Null}"
+              EndConnector="228.833333333333,133"
+              Start="0,0"
+              End="228.833333333333,125.5">
+              <mssgle:Curve.Segments>
+                <mssgle:SegmentCollection
+                  Capacity="5">
+                  <mssgle:LineSegment
+                    End="0,82.3848781598725" />
+                  <mssgle:CubicBezierSegment
+                    Point1="0,82.3848781598725"
+                    Point2="0,86.3848781598725"
+                    Point3="4,86.3848781598725" />
+                  <mssgle:LineSegment
+                    End="224.833333333333,86.3848781598725" />
+                  <mssgle:CubicBezierSegment
+                    Point1="224.833333333333,86.3848781598725"
+                    Point2="228.833333333333,86.3848781598725"
+                    Point3="228.833333333333,90.3848781598725" />
+                  <mssgle:LineSegment
+                    End="228.833333333333,125.5" />
+                </mssgle:SegmentCollection>
+              </mssgle:Curve.Segments>
+            </mssgle:Curve>
+          </EdgeLayout.Curve>
+          <EdgeLayout.Labels>
+            <EdgeLabelCollection />
+          </EdgeLayout.Labels>
+        </EdgeLayout>
+        <EdgeLayout
+          Id="Package\Load From Staging Tables Into Northwind_DWH.PrecedenceConstraints[Constraint 4]"
+          TopLeft="709.5,92">
+          <EdgeLayout.Curve>
+            <mssgle:Curve
+              StartConnector="{assembly:Null}"
+              EndConnector="-111,134"
+              Start="0,0"
+              End="-111,126.5">
+              <mssgle:Curve.Segments>
+                <mssgle:SegmentCollection
+                  Capacity="5">
+                  <mssgle:LineSegment
+                    End="0,63" />
+                  <mssgle:CubicBezierSegment
+                    Point1="0,63"
+                    Point2="0,67"
+                    Point3="-4,67" />
+                  <mssgle:LineSegment
+                    End="-107,67" />
+                  <mssgle:CubicBezierSegment
+                    Point1="-107,67"
+                    Point2="-111,67"
+                    Point3="-111,71" />
+                  <mssgle:LineSegment
+                    End="-111,126.5" />
+                </mssgle:SegmentCollection>
+              </mssgle:Curve.Segments>
+            </mssgle:Curve>
+          </EdgeLayout.Curve>
+          <EdgeLayout.Labels>
+            <EdgeLabelCollection />
+          </EdgeLayout.Labels>
+        </EdgeLayout>
+        <EdgeLayout
+          Id="Package\Load From Staging Tables Into Northwind_DWH.PrecedenceConstraints[Constraint 5]"
+          TopLeft="892,93">
+          <EdgeLayout.Curve>
+            <mssgle:Curve
+              StartConnector="{assembly:Null}"
+              EndConnector="-269,133"
+              Start="0,0"
+              End="-269,125.5">
+              <mssgle:Curve.Segments>
+                <mssgle:SegmentCollection
+                  Capacity="5">
+                  <mssgle:LineSegment
+                    End="0,74.9846743295019" />
+                  <mssgle:CubicBezierSegment
+                    Point1="0,74.9846743295019"
+                    Point2="0,78.9846743295019"
+                    Point3="-4,78.9846743295019" />
+                  <mssgle:LineSegment
+                    End="-265,78.9846743295019" />
+                  <mssgle:CubicBezierSegment
+                    Point1="-265,78.9846743295019"
+                    Point2="-269,78.9846743295019"
+                    Point3="-269,82.9846743295019" />
+                  <mssgle:LineSegment
+                    End="-269,125.5" />
+                </mssgle:SegmentCollection>
+              </mssgle:Curve.Segments>
+            </mssgle:Curve>
+          </EdgeLayout.Curve>
+          <EdgeLayout.Labels>
+            <EdgeLabelCollection />
+          </EdgeLayout.Labels>
+        </EdgeLayout>
+        <EdgeLayout
+          Id="Package\Load From Staging Tables Into Northwind_DWH.PrecedenceConstraints[Constraint 6]"
+          TopLeft="1070.5,101">
+          <EdgeLayout.Curve>
+            <mssgle:Curve
+              StartConnector="{assembly:Null}"
+              EndConnector="-423,125"
+              Start="0,0"
+              End="-423,117.5">
+              <mssgle:Curve.Segments>
+                <mssgle:SegmentCollection
+                  Capacity="5">
+                  <mssgle:LineSegment
+                    End="0,87.3915094339623" />
+                  <mssgle:CubicBezierSegment
+                    Point1="0,87.3915094339623"
+                    Point2="0,91.3915094339623"
+                    Point3="-4,91.3915094339623" />
+                  <mssgle:LineSegment
+                    End="-419,91.3915094339623" />
+                  <mssgle:CubicBezierSegment
+                    Point1="-419,91.3915094339623"
+                    Point2="-423,91.3915094339623"
+                    Point3="-423,95.3915094339623" />
+                  <mssgle:LineSegment
+                    End="-423,117.5" />
+                </mssgle:SegmentCollection>
+              </mssgle:Curve.Segments>
+            </mssgle:Curve>
+          </EdgeLayout.Curve>
+          <EdgeLayout.Labels>
+            <EdgeLabelCollection />
+          </EdgeLayout.Labels>
+        </EdgeLayout>
+        <ContainerLayout
+          HeaderHeight="43"
+          IsExpanded="True"
+          PanelSize="1182,290"
+          Size="1182,333"
+          Id="Package\Load From Staging Tables Into Northwind_DWH"
+          TopLeft="55.7777777777781,88.2222222222219" />
+        <EdgeLayout
+          Id="Package.PrecedenceConstraints[Constraint 1]"
+          TopLeft="644.638888888889,64">
+          <EdgeLayout.Curve>
+            <mssgle:Curve
+              StartConnector="{assembly:Null}"
+              EndConnector="0,24.2222222222219"
+              Start="0,0"
+              End="0,16.7222222222219">
+              <mssgle:Curve.Segments>
+                <mssgle:SegmentCollection
+                  Capacity="5">
+                  <mssgle:LineSegment
+                    End="0,16.7222222222219" />
+                </mssgle:SegmentCollection>
+              </mssgle:Curve.Segments>
+            </mssgle:Curve>
+          </EdgeLayout.Curve>
+          <EdgeLayout.Labels>
+            <EdgeLabelCollection />
+          </EdgeLayout.Labels>
+        </EdgeLayout>
+      </GraphLayout>
+    </LayoutInfo>
+  </Package>
+</Objects>]]></DTS:DesignTimeProperties>
+</DTS:Executable>
