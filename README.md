@@ -1,11 +1,11 @@
 # Northwind End-to-End Data Warehouse & ETL Project
 
-## 📌 Project Overview
+## Project Overview
 This project demonstrates a complete Data Engineering lifecycle, transforming raw operational data from the **Northwind** database into a structured **Data Warehouse (DWH)**. The solution leverages **SSIS** for orchestration and **PostgreSQL** for robust data storage and transformation.
 
 ---
 
-## 🏗️ Architecture & Design
+## Architecture & Design
 
 ### 1. Data Warehouse Schema (Star Schema)
 The core of the project is a professional **Star Schema** designed for optimal analytical performance.
@@ -18,7 +18,7 @@ The core of the project is a professional **Star Schema** designed for optimal a
 
 ---
 
-## ⚙️ ETL Process (SSIS Orchestration)
+## ETL Process (SSIS Orchestration)
 
 The ETL pipeline is divided into two main phases to ensure data isolation and system stability.
 
@@ -34,7 +34,7 @@ Data is transformed and loaded into the Star Schema. I utilized **Push-down Opti
 
 ---
 
-## 🔍 Data Validation & Testing
+## Data Validation & Testing
 To ensure the integrity of the Data Warehouse, I performed several SQL validation tests.
 
 **Example: Validating Many-to-Many Bridge Table**
