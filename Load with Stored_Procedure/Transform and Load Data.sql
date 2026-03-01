@@ -105,7 +105,7 @@ select * from dim.dim_customer
 
 
 
-/* English comments: 
+/* 
    Stored Procedure to load Dim_Employee from Staging.
    Includes formatting for full_name and handling NULLs.
 */
@@ -154,7 +154,7 @@ select * from dim.dim_employee
 
 
 
-/* English comments: 
+/* 
    Stored Procedure to load Dim_Territory from Staging.
    Includes TRIM for data cleaning and COALESCE for regions.
 */
@@ -224,7 +224,7 @@ select * FROM dim.dim_shipper
 
 
 
-/* English comments: 
+/* 
    Stored Procedure to generate Dim_Date records.
    Generates a date range from 1990 to 2000 dynamically.
 */
@@ -276,7 +276,7 @@ select * from dim.dim_date
 
 
 
-/* English comments: 
+/* 
    Stored Procedure to load the Bridge table.
    Resolves Many-to-Many relationship between Employees and Territories.
    Joins Staging with Dimension tables to get Surrogate Keys.
@@ -357,5 +357,6 @@ $$;
 call Fact.Load_Fact_Sales()
 
 select * from fact.fact_sales
+
 
 
